@@ -7,10 +7,13 @@
         "sampleUrl": "https://jlemon.org/scorecards/api/v1",
         "url": "https://jlemon.org/scorecards/api/v1"
     },
+    "nodemonConfig": {
+        "ignore": ["node_modules", "*.test.js", "./src/routes/docs/html/*"]
+    },
     "scripts": {
         "test": "mocha 'src/routes/**/*.test.js'",
         "lint": "eslint src --ext .js,.ts --fix",
-        "dev": "node src/index.js | pino-pretty -t 'SYS:yyyy-mm-dd HH:MM:ss'",
+        "dev": "nodemon src/index.js | pino-pretty -t 'SYS:yyyy-mm-dd HH:MM:ss'",
         "start": "forever start -o rat.log --uid=rat --append src/index.js",
         "stop": "forever stop rat",
         "log": "tail -fn 100 ~/.forever/rat.log | pino-pretty -t 'SYS:yyyy-mm-dd HH:MM:ss'"
@@ -30,6 +33,7 @@
         "eslint-plugin-promise": "^4.2.1",
         "eslint-plugin-standard": "^4.0.1",
         "mocha": "^8.1.3",
+        "nodemon": "^2.0.12",
         "pino-pretty": "^5.1.1",
         "should": "^13.2.3",
         "supertest": "^4.0.2"

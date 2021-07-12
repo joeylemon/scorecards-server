@@ -1,60 +1,43 @@
 import { query } from '../../utils/db.js'
 
-export async function getGameList () {
-    const scores = await query(`select 
-    gs.game_id as 'game.id', 
-    gs.player_id as 'player.id', 
-    gs.hole_num as 'hole_num', 
-    gs.score as 'score', 
-    p.name as 'player.name', 
-    g.date as 'game.start_time', 
-    g.end_time as 'game.end_time', 
-    g.front as 'game.front', 
-    g.hole_count as 'game.hole_count', 
+export function getGameList () {
+    return query(`select 
+    g.id as 'id',
+    g.date as 'start_time', 
+    g.end_time as 'end_time', 
+    g.front as 'front', 
+    g.hole_count as 'hole_count', 
     g.course_id as 'course.id', 
-    c.name as 'course.name',
-    cp.par as 'par'
+    c.name as 'course.name'
+    from games g
+    left join courses c on c.id=g.course_id`)
+}
+
+export async function getScorecard (gameId) {
+    const rows = await query(`select gs.*, cp.par, cp.handicap, g.hole_count, p.name as player_name
     from game_scores gs
-    left join players p on p.id=gs.player_id
     left join games g on g.id=gs.game_id
-    left join courses c on c.id=g.course_id
-    left join course_pars cp on cp.course_id=g.course_id and cp.hole_num=gs.hole_num`)
+    left join course_pars cp on cp.course_id=g.course_id and gs.hole_num=cp.hole_num 
+    left join players p on p.id=gs.player_id
+    where gs.game_id = ?`, [gameId])
 
-    const games = {}
-    for (const score of scores) {
-        // Initialize map entry
-        if (!games[score.game.id]) {
-            games[score.game.id] = {
-                players: {}, 
-                scores: {}, 
-                pars: {}, 
-                front: score.game.front === 1,
-                course: score.course,
-                start_time: score.start_time,
-                end_time: score.end_time,
-                hole_count: score.hole_count
-            }
-        }
-
-        games[score.game.id]['players'][score.player.id] = score.player
-
-        if (!games[score.game.id]['scores'][score.player.name]) {
-            games[score.game.id]['scores'][score.player.name] = {}
-        }
-
-        games[score.game.id]['scores'][score.player.name][score.hole_num] = score.score
-        games[score.game.id]['pars'][score.hole_num] = score.par
+    const game = {
+        id: rows[0].game_id,
+        hole_count: rows[0].hole_count,
+        scores: {},
+        pars: [],
+        handicaps: []
     }
 
-    return Object.keys(games).map(key => {
-        const entry = games[key]
-        return {
-            id: parseInt(key),
-            course: entry.course,
-            front: entry.front,
-            pars: entry.pars,
-            players: Object.keys(entry.players).map(key => entry.players[key]),
-            scores: entry.scores,
-        }
-    })
+    for (const row of rows) {
+        if (!game.scores[row.player_name]) { game.scores[row.player_name] = [] }
+
+        game.scores[row.player_name].push(row.score)
+
+        if (game.pars.length !== game.hole_count) { game.pars.push(row.par) }
+
+        if (game.handicaps.length !== game.hole_count) { game.handicaps.push(row.handicap) }
+    }
+
+    return game
 }

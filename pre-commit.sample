@@ -10,22 +10,6 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-# Run tests
-npm run test
-
-if [ $? -ne 0 ]; then
-	echo "Error while running tests: canceling commit"
-	exit 1
-fi
-
-# Backup the database
-mysqldump --no-tablespaces -u rat -p5LHgV4^#6AZG9a53AH#U5apb rat > ./src/db/backup.sql
-
-if [ $? -ne 0 ]; then
-	echo "Error while backing up database: canceling commit"
-	exit 1
-fi
-
 # Add back the modified files to staging
 echo "$FILES" | xargs git add
 

@@ -20,7 +20,6 @@ const doc = apidoc.createDoc({
  * Instead, let's call createDoc() in another folder and write only the data files in our custom html.
  */
 fs.writeFileSync(path.join(dirs.docs, 'html', 'api_data.js'), `define({ "api": ${doc.data} });`)
-fs.writeFileSync(path.join(dirs.routes, 'endpoints.json'), doc.data)
 fs.writeFileSync(path.join(dirs.docs, 'html', 'api_project.js'), `define(${doc.project});`)
 
 /**

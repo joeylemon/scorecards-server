@@ -20,4 +20,20 @@ router.get('/games', async (req, res, next) => {
     }
 })
 
+/**
+ * @api {get} /game/:id 1. Get a game's scorecard
+ * @apiDescription Retrieve a game's scorecard
+ * @apiName get_game
+ * @apiGroup GameGroup
+ *
+ * @apiSampleRequest /game/:id
+ */
+router.get('/game/:id', async (req, res, next) => {
+    try {
+        res.status(200).json(await GameService.getScorecard(req.params.id))
+    } catch (err) {
+        next(err)
+    }
+})
+
 export default router
